@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, status, HTTPException
 
 
 app =  FastAPI()
@@ -32,4 +32,5 @@ def get_post(post_id: int):
     for post in posts : 
         if post.get("id") == post_id:
             return post
-    return {"message": "Post not found"}
+    raise HTTPException (status_code= status.HTTP_404_NOT_FOUND, detail="Post not found")
+
