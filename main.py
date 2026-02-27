@@ -1,5 +1,6 @@
-from fastapi import FastAPI, status, HTTPException
-
+from fastapi import FastAPI, status, HTTPException, Request
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from fastapi.responses import JSONResponse
 
 app =  FastAPI()
 
@@ -34,3 +35,15 @@ def get_post(post_id: int):
             return post
     raise HTTPException (status_code= status.HTTP_404_NOT_FOUND, detail="Post not found")
 
+@app.exception_handler(StarletteHTTPException)
+def general_http_exception_handler(request: Request, exception: StarletteHTTPException):
+    message = (
+        exception.detail
+        if exception.detail
+        else "An error occured. Please check your request and try again"
+    )
+
+    return JSONResponse(
+        status_code= exception.status_code,
+        content= {"detail": message}
+    )
