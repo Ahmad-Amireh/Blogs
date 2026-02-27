@@ -23,7 +23,7 @@ posts: list[dict] = [{
 }]
 
 
-@app.get('/')
+@app.get('/', include_in_schema= False)
 def home (): 
     return {"message": "Hello World"}
 
