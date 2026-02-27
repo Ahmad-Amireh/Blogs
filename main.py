@@ -1,6 +1,8 @@
 from fastapi import FastAPI, status, HTTPException, Request
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+
 
 app =  FastAPI()
 
@@ -46,4 +48,11 @@ def general_http_exception_handler(request: Request, exception: StarletteHTTPExc
     return JSONResponse(
         status_code= exception.status_code,
         content= {"detail": message}
+    )
+
+@app.exception_handler(RequestValidationError)
+def validation_exception_handler(request: Request, exception: RequestValidationError):
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+        content={"detail": "Invalid input. Check your path parameters or request body."}
     )
