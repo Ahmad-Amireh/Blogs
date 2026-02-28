@@ -5,7 +5,6 @@ from database import Base
 
 from sqlalchemy import DateTime, String, INTEGER, ForeignKey, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from schemas import Pos
 
 class User(Base):
     __tablename__ = "users"
