@@ -19,6 +19,12 @@ app =  FastAPI()
 def home (): 
     return {"message": "Hello World"}
 
+@app.get("/api/users", response_model=list[UserResponse])
+def get_users(db: Annotated[Session, Depends(get_db)]):
+    stmt = select(models.User)
+    users = db.execute(stmt).scalars().all()
+    return users
+
 @app.get("/api/users/{user_id}", response_model=UserResponse)
 def get_user(user_id: int, db:Annotated[Session, Depends(get_db)]):
     stmt = select(models.User).where(models.User.id == user_id)
