@@ -2,7 +2,7 @@ from fastapi import FastAPI, status, HTTPException, Request, Depends
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
-from schemas import PostResponse, PostCreate, UserCreate, UserResponse
+from schemas import PostResponse, PostCreate, UserCreate, UserResponse, PostUpdate
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from typing import Annotated
@@ -104,6 +104,31 @@ def get_post(post_id: int, db: Annotated[Session, Depends(get_db)]):
   if not post:
       raise HTTPException (status_code= status.HTTP_404_NOT_FOUND, detail="Post not Found")
   return post
+
+@app.put("/api/posts/{post_id}", response_model=PostResponse)
+def update_post_full(
+    post_id: int, 
+    post_data: PostCreate, 
+    db: Annotated[Session, Depends(get_db)]
+):
+    post = db.get(models.Post, post_id)
+
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not Found")
+
+    user = db.get(models.User, post_data.user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not Found")
+
+    post.title = post_data.title
+    post.content = post_data.content
+    post.user_id = post_data.user_id
+
+    db.commit()
+    db.refresh(post)
+
+    return post
+
 
 @app.exception_handler(StarletteHTTPException)
 def general_http_exception_handler(request: Request, exception: StarletteHTTPException):
