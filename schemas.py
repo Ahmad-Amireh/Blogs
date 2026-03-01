@@ -1,4 +1,19 @@
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, EmailStr
+from datetime import datetime
+
+
+
+class UserBase(BaseModel):
+    name:str = Field(min_length=1, max_length=20)
+    email: EmailStr = Field(max_length=120)
+
+class UserCreate(UserBase): 
+    pass
+
+class UserResponse(UserBase):
+    model_config = ConfigDict(from_attributes=True)
+    
+    id:int 
 
 class PostBase (BaseModel):
     author: str = Field(min_length=1, max_length= 20)
@@ -6,11 +21,13 @@ class PostBase (BaseModel):
     content: str = Field(min_length=1)
     
 class PostCreate(PostBase):
-    pass
+    user_id: int #temp
 
 class PostResponse(PostBase):
     model_config = ConfigDict(from_attributes= True)
 
     id: int
-    date_posted: str
+    user_id: int
+    date_posted: datetime
+    author: UserResponse
 
