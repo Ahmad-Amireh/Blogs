@@ -16,13 +16,15 @@ class UserResponse(UserBase):
     id:int 
 
 class PostBase (BaseModel):
-    author: str = Field(min_length=1, max_length= 20)
     title: str = Field(min_length=1, max_length=100)
     content: str = Field(min_length=1)
     
 class PostCreate(PostBase):
     user_id: int #temp
 
+class PostUpdate(BaseModel):
+    title: str | None = Field(default= None, min_length=1, max_length=100)
+    content: str | None = Field(min_length=1, default=None)
 class PostResponse(PostBase):
     model_config = ConfigDict(from_attributes= True)
 
