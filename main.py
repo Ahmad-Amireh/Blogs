@@ -149,6 +149,15 @@ def update_post_partial(
 
     return post
 
+@app.delete("/api/posts/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_post(post_id: int, db:Annotated[Session, Depends(get_db)]):
+    post = db.get(models.Post, post_id)
+    if not post: 
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Post not found"
+        )
+    db.delete(post)
+    db.commit()
 
 @app.exception_handler(StarletteHTTPException)
 def general_http_exception_handler(request: Request, exception: StarletteHTTPException):
