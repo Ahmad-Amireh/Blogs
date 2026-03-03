@@ -129,6 +129,26 @@ def update_post_full(
 
     return post
 
+@app.patch("/api/posts/{post_id}", response_model=PostResponse)
+def update_post_partial(
+    post_id: int, 
+    post_data: PostUpdate, 
+    db: Annotated[Session, Depends(get_db)]
+):
+    post = db.get(models.Post, post_id)
+
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not Found")
+
+    update_data = post_data.model_dump(exclude_unset= True) #to remove default values
+    for field, value in update_data.items():
+        setattr(post, field, value)
+
+    db.commit()
+    db.refresh(post)
+
+    return post
+
 
 @app.exception_handler(StarletteHTTPException)
 def general_http_exception_handler(request: Request, exception: StarletteHTTPException):
