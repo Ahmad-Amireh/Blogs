@@ -2,7 +2,7 @@ from fastapi import FastAPI, status, HTTPException, Request, Depends
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
-from schemas import PostResponse, PostCreate, UserCreate, UserResponse, PostUpdate
+from schemas import PostResponse, PostCreate, UserCreate, UserResponse, PostUpdate, UserUpdate
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from typing import Annotated
@@ -34,7 +34,45 @@ def get_user(user_id: int, db:Annotated[Session, Depends(get_db)]):
                             detail="User not found")
     return user 
 
+@app.patch("/api/users/{user_id}", response_model=UserResponse)
+def update_user(
+    user_id: int,
+    user_update: UserUpdate,
+    db: Annotated[Session, Depends(get_db)],
+):
+    user = db.get(models.User, user_id)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
+
+    if user_update.name is not None and user_update.name != user.name:
+        stmt = select(models.User).where(models.User.name == user_update.name)
+        exist_user = db.execute(stmt).scalar_one_or_none()
+        if exist_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="User already exists"
+            )
+
+    if user_update.email is not None and user_update.email != user.email:
+        stmt = select(models.User).where(models.User.email == user_update.email)
+        exist_email = db.execute(stmt).scalar_one_or_none()
+        if exist_email:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email already exists"
+            )
+
+    if user_update.name is not None:
+        user.name = user_update.name
+    if user_update.email is not None:
+        user.email = user_update.email
+        
+
+    db.commit()
+    db.refresh(user)
+
+    return user
 @app.post("/api/users", status_code=status.HTTP_201_CREATED, response_model=UserResponse)
 def create_user (user: UserCreate, db:Annotated[Session, Depends(get_db)]):
     stmt = select(models.User).where(models.User.name == user.name)
