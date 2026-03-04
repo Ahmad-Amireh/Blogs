@@ -73,6 +73,21 @@ def update_user(
     db.refresh(user)
 
     return user
+
+@app.delete("/api/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_user(
+    user_id: int,
+    db: Annotated[Session, Depends(get_db)],
+):
+    user = db.get(models.User, user_id)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    
+    db.delete(user)
+    db.commit()
+    return user
+
+
 @app.post("/api/users", status_code=status.HTTP_201_CREATED, response_model=UserResponse)
 def create_user (user: UserCreate, db:Annotated[Session, Depends(get_db)]):
     stmt = select(models.User).where(models.User.name == user.name)
