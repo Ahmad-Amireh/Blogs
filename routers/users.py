@@ -66,7 +66,8 @@ async def create_user (user: UserCreate, db:Annotated[AsyncSession, Depends(get_
     
     new_user= models.User(
         name= user.name.strip(),
-        email= user.email.strip().lower()
+        email= user.email.strip().lower(),
+        password_hash = hash_password(user.password)
     )
     
     db.add(new_user)
