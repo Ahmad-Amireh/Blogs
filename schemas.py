@@ -8,7 +8,7 @@ class UserBase(BaseModel):
     email: EmailStr = Field(max_length=120)
 
 class UserCreate(UserBase): 
-    pass
+    password:str = Field(min_length=8)
 
 class UserUpdate(BaseModel):
     name:str | None = Field(default= None, min_length=1, max_length=20)
