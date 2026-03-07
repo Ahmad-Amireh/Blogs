@@ -14,10 +14,15 @@ class UserUpdate(BaseModel):
     name:str | None = Field(default= None, min_length=1, max_length=20)
     email:EmailStr | None = Field(default= None, max_length=120)
 
-class UserResponse(UserBase):
+class UserPublicResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    
-    id:int 
+
+    id: int
+    name:str
+
+class UserPrivateResponse(UserPublicResponse):
+    model_config = ConfigDict(from_attributes=True)
+    email: EmailStr
 
 class PostBase (BaseModel):
     title: str = Field(min_length=1, max_length=100)
@@ -35,5 +40,5 @@ class PostResponse(PostBase):
     id: int
     user_id: int
     date_posted: datetime
-    author: UserResponse
+    author: UserPublicResponse
 
