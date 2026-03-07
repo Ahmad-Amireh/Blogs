@@ -42,3 +42,6 @@ class PostResponse(PostBase):
     date_posted: datetime
     author: UserPublicResponse
 
+class Token(BaseModel):
+    access_token: str
+    token_type: str
