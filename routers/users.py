@@ -6,8 +6,12 @@ from sqlalchemy.orm import selectinload
 
 import models 
 from asynco.database import get_db
-from schemas import PostResponse, UserCreate, UserResponse, UserUpdate
-
+from schemas import PostResponse, UserCreate, UserPrivateResponse, UserUpdate, UserPublicResponse, Token
+from datetime import timedelta
+from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy import func
+from auth import hash_password, verify_password, create_access_token, verify_access_token, oauth2_scheme
+from config import settings
 
 router = APIRouter()
 
@@ -48,21 +52,21 @@ async def get_user_posts(user_id: int, db: Annotated[AsyncSession, Depends(get_d
 
     return posts
 
-@router.post("", status_code=status.HTTP_201_CREATED, response_model=UserResponse)
+@router.post("", status_code=status.HTTP_201_CREATED, response_model=UserPrivateResponse)
 async def create_user (user: UserCreate, db:Annotated[AsyncSession, Depends(get_db)]):
-    stmt = select(models.User).where(models.User.name == user.name)
+    stmt = select(models.User).where(func.lower(models.User.name) == user.name.lower())
     exist_user = (await db.execute(stmt)).scalar_one_or_none()
     if exist_user: 
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="user already exists")
     
-    stmt =  select(models.User).where(models.User.email == user.email)
+    stmt =  select(models.User).where(func.lower(models.User.email) == user.email.lower())
     exist_email = (await db.execute(stmt)).scalar_one_or_none()
     if exist_email:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already exists")
     
     new_user= models.User(
-        name= user.name,
-        email= user.email
+        name= user.name.strip(),
+        email= user.email.strip().lower()
     )
     
     db.add(new_user)
