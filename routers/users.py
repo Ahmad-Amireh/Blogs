@@ -76,6 +76,35 @@ async def create_user (user: UserCreate, db:Annotated[AsyncSession, Depends(get_
 
     return new_user
 
+@router.post ("/token", response_model=Token)
+async def login_for_access_token(
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()], #it handles the parsing form data. 
+                                                                #Use the field called username but we use it for email.
+    db: Annotated[AsyncSession, Depends(get_db)]
+):
+    """
+    This endpoint generates an access token for a user and returns it.
+    First, it checks if a user with the submitted email exists in the database.
+    If the user exists, it verifies that the provided password matches the stored hashed password.
+    If authentication succeeds, it creates a JWT access token using the user ID as the subject and sets its expiration time. 
+    Finally, it returns the token in the response.
+    """
+    stmt = select(models.User).where(func.lower(models.User.email) == form_data.username.lower())
+    user = (await db.execute(stmt)).scalar_one_or_none()
+    
+    if not user or not verify_password(form_data.password, user.password_hash):
+        raise HTTPException(
+            status_code= status.HTTP_401_UNAUTHORIZED,
+            detail= "Incorrect Email or Password", # we don't want to reveail which one is incorrect for safty
+            headers= {"WWW-Authenticate": "Bearer"}
+        )
+    
+    access_token_expire =  timedelta(minutes=settings.access_token_expire_minutes)
+    access_token = create_access_token(data={"sub": str(user.id)}, 
+                                       expires_delta= access_token_expire)
+    return Token(access_token=access_token, token_type="bearer")
+
+
 
 @router.patch("/{user_id}", response_model=UserResponse)
 async def update_user(
