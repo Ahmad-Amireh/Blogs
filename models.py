@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from database import Base
+from asynco.database import Base
 
 from sqlalchemy import DateTime, String, INTEGER, ForeignKey, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -21,6 +21,6 @@ class Post(Base):
     id: Mapped[int] = mapped_column(INTEGER, primary_key= True, index= True)
     title: Mapped[str] = mapped_column(String(100), unique= True, nullable= False)
     content: Mapped[str] = mapped_column(Text, nullable = False)
-    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable= False, index= True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable= False, index= True)
     date_posted: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     author:Mapped[User] = relationship(back_populates="posts")
