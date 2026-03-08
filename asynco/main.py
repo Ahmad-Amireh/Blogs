@@ -5,6 +5,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.exceptions import RequestValidationError
 from .database import Base, engine
 from routers import posts, users
+from models import User, Post
 
 
 
